@@ -1,4 +1,0 @@
-CREATE TABLE links (
-    fromLink VARCHAR(255) PRIMARY KEY,
-    toLink VARCHAR(255) NOT NULL
-);

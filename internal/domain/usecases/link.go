@@ -1,7 +1,6 @@
 package usecases
 
 import (
-	"log"
 	"math/rand"
 
 	"github.com/alekseysychev/avito-auto-backend-trainee-assignment/internal/domain/entities"
@@ -14,7 +13,6 @@ type LinkService struct {
 }
 
 func (ls *LinkService) GetLinkByFrom(from string) (string, error) {
-	log.Println("usecases")
 	if from == "" {
 		return "", errors.ErrEmptyFromLink
 	}

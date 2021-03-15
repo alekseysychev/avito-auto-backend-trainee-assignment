@@ -6,7 +6,9 @@ networks:
 
 services:
   http:
-    build: .
+    build: 
+      dockerfile: cmd/http_server/Dockerfile
+      context: .
     depends_on:
       - postgres
     restart: on-failure
@@ -14,12 +16,12 @@ services:
       - "8080:8080"
     expose:
       - 8080
+    command: bash -c 'while !</dev/tcp/db/5432; do sleep 1; done;'
     environment:
-      DB_DSN: "postgres://user:password@postgres:5432/exampledb?sslmode=disable"
+      DB_DSN: "postgres://user:password@postgres:5432/postgres?sslmode=disable"
       HTTP_SERVER_ADDR: ":8080"
     networks:
       - db
-
   postgres:
     image: postgres:11.1
     ports:
