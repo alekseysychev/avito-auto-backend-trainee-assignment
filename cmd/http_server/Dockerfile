@@ -13,4 +13,4 @@ RUN CGO_ENABLED=0 go build -o /opt/service/http_server
 # Release
 FROM alpine:latest
 COPY --from=build-env /opt/service/http_server /bin/http_server
-ENTRYPOINT ["/bin/http_server serve"]
+ENTRYPOINT ["/bin/http_server"]
