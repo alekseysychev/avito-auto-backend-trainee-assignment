@@ -14,9 +14,9 @@ services:
       - "8080:8080"
     expose:
       - 8080
-    # environment:
-      # REG_SERVICE_DB_DSN: "postgres://user:password@postgres:5432/exampledb?sslmode=disable"
-      # REG_SERVICE_SERVER_ADDR: ":8088"
+    environment:
+      DB_DSN: "postgres://user:password@postgres:5432/exampledb?sslmode=disable"
+      HTTP_SERVER_ADDR: ":8080"
     networks:
       - db
 
