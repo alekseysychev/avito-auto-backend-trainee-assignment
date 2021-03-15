@@ -1,0 +1,36 @@
+version: "3"
+
+networks:
+  db:
+    driver: bridge
+
+services:
+  http:
+    build: .
+    depends_on:
+      - postgres
+    restart: on-failure
+    ports:
+      - "8080:8080"
+    expose:
+      - 8080
+    # environment:
+      # REG_SERVICE_DB_DSN: "postgres://user:password@postgres:5432/exampledb?sslmode=disable"
+      # REG_SERVICE_SERVER_ADDR: ":8088"
+    networks:
+      - db
+
+  postgres:
+    image: postgres:11.1
+    ports:
+      - "5432:5432"
+    expose:
+      - 5432
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: postgres
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/setup.sql
+    networks:
+      - db
