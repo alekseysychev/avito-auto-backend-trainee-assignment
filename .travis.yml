@@ -1,0 +1,15 @@
+language: go
+
+go:
+  - "1.16"
+
+os:
+  - linux
+
+git:
+  depth: 1
+  quiet: true
+  submodules: false
+
+notifications:
+  email: false
