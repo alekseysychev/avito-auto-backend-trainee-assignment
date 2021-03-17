@@ -21,6 +21,12 @@ func (ls *LinkService) GetLinkByFrom(from string) (string, error) {
 }
 
 func generateRandomLink(n int) string {
+	if n <= 0 {
+		n = 6
+	}
+	if n > 20 {
+		n = 6
+	}
 	letterRunes := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
 	b := make([]rune, n)

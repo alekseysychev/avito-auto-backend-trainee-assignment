@@ -10,20 +10,20 @@ services:
       dockerfile: cmd/http_server/Dockerfile
       context: .
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     restart: on-failure
     ports:
       - "8080:8080"
     expose:
       - 8080
-    command: bash -c 'while !</dev/tcp/db/5432; do sleep 1; done;'
     environment:
       DB_DSN: "postgres://user:password@postgres:5432/postgres?sslmode=disable"
       HTTP_SERVER_ADDR: ":8080"
     networks:
       - db
   postgres:
-    image: postgres:11.1
+    image: postgres:latest
     ports:
       - "5432:5432"
     expose:
@@ -32,6 +32,11 @@ services:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
       POSTGRES_DB: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 20s
+      timeout: 5s
+      retries: 10
     volumes:
       - ./scripts/init.sql:/docker-entrypoint-initdb.d/setup.sql
     networks:
