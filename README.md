@@ -1,3 +1,5 @@
+[![codecov](https://codecov.io/gh/alekseysychev/avito-auto-backend-trainee-assignment/branch/main/graph/badge.svg?token=H4SH8P2YD4)](https://codecov.io/gh/alekseysychev/avito-auto-backend-trainee-assignment)
+
 [Сссылка на репозиторий](https://github.com/avito-tech/auto-backend-trainee-assignment)
 
 # Тестовое задание на позицию стажера/junior бекенд разработчика в юнит Авто
