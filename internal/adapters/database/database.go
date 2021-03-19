@@ -17,6 +17,7 @@ func NewPgEventStorage(dsn string) (*PgLinkStorage, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	err = db.Ping()
 	if err != nil {
 		return nil, err
@@ -41,11 +42,16 @@ func (pges *PgLinkStorage) GetLinkByFrom(from string) (string, error) {
 	return toLink, nil
 }
 
-func (pges *PgLinkStorage) SaveLink(link entities.Link) error {
+func (pges *PgLinkStorage) SaveLink(link entities.Link) bool {
 	query := `
-		INSERT INTO links (fromlink, tolink)
-		VALUES ($1, $2);
+		INSERT INTO links (fromlink, tolink) 
+		VALUES ($1, $2)
+		ON CONFLICT DO NOTHING RETURNING true;
 	`
-	_, err := pges.db.ExecContext(context.Background(), query, link.From, link.To)
-	return err
+
+	row := pges.db.QueryRow(query, link.From, link.To)
+	var success bool
+	row.Scan(&success)
+
+	return success
 }

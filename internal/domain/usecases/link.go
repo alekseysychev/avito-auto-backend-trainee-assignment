@@ -20,6 +20,10 @@ func (ls *LinkService) GetLinkByFrom(from string) (string, error) {
 	return link, err
 }
 
+const (
+	generatedLen = 10
+)
+
 func generateRandomLink(n int) string {
 	if n <= 0 {
 		n = 6
@@ -37,12 +41,36 @@ func generateRandomLink(n int) string {
 }
 
 func (ls *LinkService) CreateLink(link entities.Link) error {
-	if link.From == "" {
-		link.From = generateRandomLink(6)
-	}
 	if link.To == "" {
 		return errors.ErrEmptyToLink
 	}
-	err := ls.LinkStorage.SaveLink(link)
-	return err
+
+	var generated bool
+	if link.From == "" {
+		generated = true
+	}
+
+	var success bool
+	var step int
+
+	for !success && step < 10000 {
+		if generated {
+			link.From = generateRandomLink(generatedLen)
+		}
+		success = ls.LinkStorage.SaveLink(link)
+		println(success)
+		if !success && !generated {
+			break
+		}
+		step++
+	}
+
+	if !success {
+		if generated {
+			return errors.ErrCantInsertNewData
+		}
+		return errors.ErrFromAlreadyExist
+	}
+
+	return nil
 }

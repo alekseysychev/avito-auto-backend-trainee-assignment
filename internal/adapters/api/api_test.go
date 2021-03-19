@@ -110,4 +110,18 @@ func Test(t *testing.T) {
 			server.ServeHTTP(recorder, req)
 		}
 	})
+
+	/*
+		t.Run("up and down real server", func(t *testing.T) {
+			server := &HttpServer{
+				LinkUseCases: &LinkUseCasesTest{},
+			}
+
+			go func() {
+				done <- syscall.SIGINT
+			}()
+
+			server.Serve(":8080")
+		})
+	*/
 }
