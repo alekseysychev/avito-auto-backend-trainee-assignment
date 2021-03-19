@@ -1,9 +1,13 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/alekseysychev/avito-auto-backend-trainee-assignment/internal/domain/entities"
@@ -67,6 +71,8 @@ func (hs *HttpServer) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
+var done chan os.Signal
+
 func (hs *HttpServer) Serve(addr string) {
 	http.Handle("/", hs)
 
@@ -78,6 +84,27 @@ func (hs *HttpServer) Serve(addr string) {
 		MaxHeaderBytes: 1 << 20,
 	}
 
-	log.Println("Server is running...")
-	log.Fatal(s.ListenAndServe())
+	done = make(chan os.Signal, 1)
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		if err := s.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("listen: %s\n", err)
+		}
+	}()
+	log.Print("Server Started")
+
+	<-done
+	log.Print("\rServer Stopped                    ")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer func() {
+		// extra handling here
+		cancel()
+	}()
+
+	if err := s.Shutdown(ctx); err != nil {
+		log.Fatalf("Server Shutdown Failed: %+v", err)
+	}
+	log.Print("Server Exited Properly")
 }
