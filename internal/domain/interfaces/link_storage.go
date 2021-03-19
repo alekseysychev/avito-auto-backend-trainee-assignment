@@ -6,5 +6,5 @@ import (
 
 type LinkStorage interface {
 	GetLinkByFrom(from string) (string, error)
-	SaveLink(link entities.Link) error
+	SaveLink(link entities.Link) bool
 }

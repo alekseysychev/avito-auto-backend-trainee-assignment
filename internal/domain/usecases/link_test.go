@@ -1,7 +1,6 @@
 package usecases
 
 import (
-	"errors"
 	"math/rand"
 	"testing"
 
@@ -13,14 +12,15 @@ import (
 type LinkStorageTest struct {
 	s string
 	e error
+	b bool
 }
 
 func (lst *LinkStorageTest) GetLinkByFrom(from string) (string, error) {
 	return lst.s, lst.e
 }
 
-func (lst *LinkStorageTest) SaveLink(link entities.Link) error {
-	return lst.e
+func (lst *LinkStorageTest) SaveLink(link entities.Link) bool {
+	return lst.b
 }
 
 func Test(t *testing.T) {
@@ -72,22 +72,30 @@ func Test(t *testing.T) {
 			f string
 			t string
 			e error
+			b bool
 		}{
-			{"empty from & to", "", "", err.ErrEmptyToLink},
-			{"not empty from & to", "/from", "/to", nil},
-			{"not empty from & to But databaseError", "/from", "/to", errors.New("DB error")},
+			{"empty from & to", "", "", err.ErrEmptyToLink, false},
+			{"empty from", "", "/to", nil, true},
+			{"empty from", "", "/to", err.ErrCantInsertNewData, false},
+			{"not empty from & to", "/from", "/to", nil, true},
+			{"not empty from & to But databaseError", "/from", "/to", err.ErrFromAlreadyExist, false},
 		} {
 			service := LinkService{
 				LinkStorage: &LinkStorageTest{
 					s: test.f,
 					e: test.e,
+					b: test.b,
 				},
 			}
 			err := service.CreateLink(entities.Link{
 				From: test.f,
 				To:   test.t,
 			})
-			assert.Equal(t, err, test.e, "should be equal"+test.n)
+
+			// println("\n\n")
+			// println(err.Error())
+			println("\n\n")
+			assert.Equal(t, err, test.e, "should be equal "+test.n)
 		}
 	})
 }
