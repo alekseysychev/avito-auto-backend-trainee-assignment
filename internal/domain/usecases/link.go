@@ -58,7 +58,7 @@ func (ls *LinkService) CreateLink(link entities.Link) error {
 			link.From = generateRandomLink(generatedLen)
 		}
 		success = ls.LinkStorage.SaveLink(link)
-		println(success)
+		// println(success)
 		if !success && !generated {
 			break
 		}

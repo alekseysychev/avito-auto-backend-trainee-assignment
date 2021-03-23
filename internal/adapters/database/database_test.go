@@ -1,63 +1,109 @@
 package database
 
-// import (
-// 	"testing"
+import (
+	"testing"
 
-// 	"github.com/alekseysychev/avito-auto-backend-trainee-assignment/internal/domain/entities"
-// 	sqlxmock "github.com/zhashkevych/go-sqlxmock"
-// )
+	"github.com/alekseysychev/avito-auto-backend-trainee-assignment/internal/domain/entities"
+	"github.com/stretchr/testify/assert"
+	sqlxmock "github.com/zhashkevych/go-sqlxmock"
+)
 
-// type DBTest struct{}
+type DBTest struct{}
 
-// func NewPgEventStorageMock(t *testing.T) (*PgLinkStorage, sqlxmock.Sqlmock) {
-// 	db, mock, err := sqlxmock.Newx()
-// 	if err != nil {
-// 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-// 	}
+func NewPgEventStorageMock(t *testing.T) (*PgLinkStorage, sqlxmock.Sqlmock) {
+	db, mock, err := sqlxmock.Newx()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
 
-// 	return &PgLinkStorage{db: db}, mock
-// }
+	obj, err := check(db)
+	if err != nil {
+		t.Fatalf("an error '%s' was in check", err)
+	}
 
-// func TestGetLinkByFrom(t *testing.T) {
-// 	linkStorage, mock := NewPgEventStorageMock(t)
+	return obj, mock
+}
 
-// 	tests := []struct {
-// 		name    string
-// 		s       *PgLinkStorage
-// 		link    entities.Link
-// 		mock    func()
-// 		want    int
-// 		wantErr bool
-// 	}{
-// 		{
-// 			name: "OK",
-// 			s:    linkStorage,
-// 			link: entities.Link{
-// 				From: "/from",
-// 				To:   "/to",
-// 			},
-// 			mock: func() {
-// 				// rows := sqlxmock.NewRows([]string{"id"}).AddRow(1)
-// 				// rows := sqlxmock.NewRows([]string{"id"})
+func Test_GetLinkByFrom(t *testing.T) {
+	linkStorage, mock := NewPgEventStorageMock(t)
 
-// 				// rows := sqlxmock.NewRows([]string{"fromlink", "tolink"}).AddRow("/from", "/to")
-// 				mock.ExpectQuery("INSERT INTO links").WithArgs("fromlink", "tolink")
-// 				//.WillReturnRows(rows)
-// 			},
-// 			want: 1,
-// 		},
-// 	}
+	tests := []struct {
+		name     string
+		mock     func()
+		linkFrom string
+		linkTo   string
+		wantErr  bool
+	}{
+		{
+			name: "Found",
+			mock: func() {
+				rows := sqlxmock.NewRows([]string{"fromlink"}).AddRow("/to")
+				mock.ExpectQuery("SELECT toLink FROM links").WithArgs("/from").WillReturnRows(rows)
+			},
+			linkFrom: "/from",
+			linkTo:   "/to",
+			wantErr:  false,
+		},
+		{
+			name: "Not Found",
+			mock: func() {
+				rows := sqlxmock.NewRows([]string{"fromlink"})
+				mock.ExpectQuery("SELECT toLink FROM links").WithArgs("/from").WillReturnRows(rows)
+			},
+			linkFrom: "/from",
+			linkTo:   "",
+			wantErr:  true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.mock()
+			to, err := linkStorage.GetLinkByFrom("/from")
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.linkTo, to)
+			}
+		})
+	}
+}
 
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			tt.mock()
-// 			err := tt.s.SaveLink(tt.link)
+func Test_SaveLink(t *testing.T) {
+	linkStorage, mock := NewPgEventStorageMock(t)
 
-// 			t.Error(err)
-// 			// if (err != nil) != tt.wantErr {
-// 			// t.Errorf("Get() error new = %v, wantErr %v", err, tt.wantErr)
-// 			// return
-// 			// }
-// 		})
-// 	}
-// }
+	tests := []struct {
+		name    string
+		mock    func()
+		link    entities.Link
+		success bool
+		wantErr bool
+	}{
+		{
+			name: "Success",
+			mock: func() {
+				rows := sqlxmock.NewRows([]string{"success"}).AddRow("true")
+				mock.ExpectQuery("INSERT INTO links").WithArgs("/from", "/to").WillReturnRows(rows)
+			},
+			link:    entities.Link{From: "/from", To: "/to"},
+			success: true,
+		},
+		{
+			name: "Error",
+			mock: func() {
+				rows := sqlxmock.NewRows([]string{"success"}).AddRow("false")
+				mock.ExpectQuery("INSERT INTO links").WithArgs("/from", "/to").WillReturnRows(rows)
+			},
+			link:    entities.Link{From: "/from", To: "/true"},
+			success: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.mock()
+			success := linkStorage.SaveLink(tt.link)
+			// fmt.Println(mock.ExpectationsWereMet())
+			assert.Equal(t, tt.success, success, "Test name: %s", tt.name)
+		})
+	}
+}
